@@ -26,15 +26,14 @@ var civicrmApp = {
         };
         fs.writeFileSync(settingsPath, JSON.stringify(settings), 'utf-8');
         console.log("Created default settings file " + settingsPath);
-      } catch (err) {
-        console.log("Error creating settings file: " + JSON.stringify(err));
-        throw err;
+      } catch (error) {
+        console.log("Error creating settings file: " + JSON.stringify(error));
+        throw error;
       }
     }
   },
 
   settingsSave: function(event, arg) {
-    console.log(arg, 'arg');
     fs.writeFileSync(app.getPath('userData') + '/settings.json', JSON.stringify(arg), 'utf-8');
     console.log('Saved settings to ' + app.getPath('userData') + '/settings.json');
     civicrmApp.loadSettings();

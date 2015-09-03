@@ -35,7 +35,7 @@ $('#q').on('keyup', function() {
 
 $('#settings-toggle').on('click', function() {
   $('#settings').toggle();
-})
+});
 
 $('#settings-save').on('click', function() {
   var settings = {
