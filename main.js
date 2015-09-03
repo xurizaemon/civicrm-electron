@@ -2,15 +2,63 @@ var app = require('app');  // Module to control application life.
 var BrowserWindow = require('browser-window');  // Module to create native browser window.
 var ipc = require('ipc');
 var civicrmApi = require('civicrm');
+var fs = require('fs');
 
-var credentials = {
-  server: 'https://civicrm.example.org',
-  path: '/sites/all/modules/civicrm/extern/rest.php',
-  key: '',
-  api_key: ''
+var settings = {};
+var crm = null;
+
+var civicrmApp = {
+  loadSettings: function() {
+    var settingsPath = app.getPath('userData') + '/settings.json';
+    try {
+      // Throws error if file doesn't exist.
+      fs.openSync(settingsPath, 'r+');
+      var settings = JSON.parse(fs.readFileSync(settingsPath));
+      mainWindow.webContents.send('settings-load', settings);
+    } catch (err) {
+      // If error, then there was no settings file (first run).
+      try {
+        var settings = {
+          server: 'https://civicrm.example.org',
+          path: '/sites/all/modules/civicrm/extern/rest.php',
+          key: '',
+          api_key: ''
+        };
+        fs.writeFileSync(settingsPath, JSON.stringify(settings), 'utf-8');
+        console.log("Created default settings file " + settingsPath);
+      } catch (err) {
+        console.log("Error creating settings file: " + JSON.stringify(err));
+        throw err;
+      }
+    }
+  },
+
+  settingsSave: function(event, arg) {
+    console.log(arg, 'arg');
+    fs.writeFileSync(app.getPath('userData') + '/settings.json', JSON.stringify(arg), 'utf-8');
+    console.log('Saved settings to ' + app.getPath('userData') + '/settings.json');
+    civicrmApp.loadSettings();
+  },
+
+  contactSearch: function(event, arg) {
+    var params = {
+      contact_type: 'Individual',
+      return: 'display_name,email,phone',
+      first_name: arg
+    };
+    crm.get('contact', params, function (result) {
+      console.log(result, 'CRM result');
+      vals = [];
+      for (var i in result.values) {
+        vals.push(result.values[i]);
+      }
+      if (vals.length) {
+        mainWindow.webContents.send('contact-results', vals);
+      }
+    });
+  }
 };
 
-var crm = null;
 
 // Report crashes to our server.
 require('crash-reporter').start();
@@ -49,24 +97,13 @@ app.on('ready', function() {
   });
 
   // Initialise CiviCRM API.
-  crm = civicrmApi(credentials);
+  civicrmApp.loadSettings();
+  crm = civicrmApi(settings);
 });
 
 // On contact search, retrieve and send back results.
-ipc.on('contact-search', function(event, arg) {
-  var params = {
-    contact_type: 'Individual',
-    return: 'display_name,email,phone',
-    first_name: arg
-  };
-  crm.get('contact', params, function (result) {
-    console.log(result, 'CRM result');
-    vals = [];
-    for (var i in result.values) {
-      vals.push(result.values[i]);
-    }
-    if (vals.length) {
-      mainWindow.webContents.send('contact-results', vals);
-    }
-  });
-});
+ipc.on('contact-search', civicrmApp.contactSearch);
+
+// On settings save, use and store the settings.
+// We could validate here too.
+ipc.on('settings-save', civicrmApp.settingsSave);

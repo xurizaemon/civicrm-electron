@@ -4,7 +4,28 @@
     <title>Hello World!</title>
   </head>
   <body>
+    <form>
+      <fieldset>
+        <label><a href="#settings" id="settings-toggle">Settings</a></label>
+        <div id="settings">
+          <label for="settings-server">Server:</label>
+          <input type="text" name="server" id="settings-server"><br>
+
+          <label for="settings-path">Server Path:</label>
+          <input type="text" name="path" id="settings-path"><br>
+
+          <label for="settings-server">Server Key:</label>
+          <input type="text" name="key" id="settings-key"><br>
+
+          <label for="settings-server">API key:</label>
+          <input type="text" name="apikey" id="settings-apikey"><br>
+
+          <input type="submit" value="Save" id="settings-save">
+        </div>
+      </fieldset>
+    </form>
     <h1>Contacts</h1>
+
     <form>
       <input type="text" id="q">
       <input type="submit" value="Search">
