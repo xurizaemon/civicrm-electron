@@ -8,6 +8,7 @@
     "node-civicrm": "git://github.com/xurizaemon/node-civicrm.git#2.2.2"
   },
   "devDependencies": {
+    "electron-packager": "^5.0.2",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.2"
   }
